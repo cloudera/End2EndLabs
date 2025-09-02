@@ -234,7 +234,7 @@ This Spark job:
 
 . Navigate to *Cloudera Data Engineering* and click on *Jobs* from the side panel.
 +
-image::../images/cde.png[tables verify]
+image::../images/cde.png[cde, width=300, height=300]
 +
 . Click on *Create Job* and enter the following values:
 +
@@ -278,9 +278,9 @@ Example files can be found in the `assets` folder:
 * `processed_dates.txt` — keeps track of dates that have already been processed.  
 
 Make sure both files are available in your S3 bucket before proceeding.
-+
+
 image::../images/s3_files.png[Verify files in S3 bucket]
-+
+
 The DAG logic:
 
 * Reads a file `dates_to_run.txt` from S3 containing all interaction dates. 
@@ -305,7 +305,7 @@ image::../images/create_job.png[Creating jobs]
 * `PROCESSED_FILE` → Path to your processed dates file (example: `my-data/InteractionDate/processed_dates.txt`)
 * `SPARK_JOB_NAME` → Name of the Spark job created in Section 7.1 (example: `CallCenterSummary`)
 +
-image::../images/variable_values.png[tables verify]
+image::../images/variable_values.png[variable values, width=700, height=300]
 +
 .. Upload the DAG file `CallCenterSummary_Dag_job.py`  
    (available in the assets folder).
