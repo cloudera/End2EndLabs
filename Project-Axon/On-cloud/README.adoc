@@ -271,10 +271,10 @@ ORDER BY interactiondate DESC;
 Create an Airflow DAG to orchestrate the daily execution of the `CallCenterSummary.py` Spark job.  
 This ensures that the job runs only for unprocessed dates and maintains a record of what has already been processed.
 
-Before creating the DAG, upload the two input files to your S3 bucket with your *desired* values.  
+Before creating the DAG, upload the two input files to your S3 bucket.  
 Example files can be found in the `assets` folder:
 
-* `dates_to_run.txt` — contains all interaction dates to be processed.  
+* `dates_to_run.txt` — should contain all the dates available in the `callcenter_interaction` table. Make sure the dates listed here match exactly with the ones already present in the table.  
 * `processed_dates.txt` — keeps track of dates that have already been processed.  
 
 Make sure both files are available in your S3 bucket before proceeding.
