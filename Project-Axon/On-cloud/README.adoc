@@ -157,6 +157,28 @@ image::../images/import_wizard.png[import wizard, width=400, height=500]
 +
 image::../images/deploy_flow.png[deploy flow, width=500, height=800]
 
+==== Add Ranger Policy for S3 Bucket Access
+
+Before starting the NiFi flows, ensure that a policy is created in Apache Ranger to allow your user to access and send files to the S3 bucket through NiFi processors.
+
+. Go to your environment from the *Management Console* and click on *Ranger*.
+. Select the service named *cm_s3*.
+. Click on *Add New Policy* and enter the following details:
+.. **Policy Name:** e.g. `allow_s3`
+.. **Bucket Name:** enter the name of your S3 bucket
+.. **Path:** `/*`
+.. Under **Allow Conditions**, in the *Users* section add your username to the list.
+.. **Permissions:** Select All
+.. Click *Save*.
+. Next, select the service named *Hadoop SQL*.
+. Locate the policy named `9 all - database, table, column`.
+. Click on the *Edit* icon to open it.
++
+image::../images/dataviz_policy.png[dataviz policy]
++
+. In the *Users* section, add your username to the list.
+. Scroll down and click *Save*.
+
 ==== Deployment Steps
 
 . In the deployment wizard:
@@ -196,7 +218,7 @@ Go to **Cloudera Data Warehouse** and under Virtual warehouses, click on `Hue` f
 
 To create all the required databases and tables at once, simply:
 
-- Open the https://github.com/cloudera/cloudera-partners/blob/project-axon/Project-Axon/create_queries.txt[create_queries.txt] file from the cloned folder.
+- Open the 'create_queries_cloud.txt' file from the cloned folder.
 - Copy the entire content.
 - Paste it into the Hue Query Editor.
 - Select all and click the **Run** button.
@@ -219,7 +241,110 @@ image::../images/table_verify.png[tables verify]
 
 If any table shows a count of `0`, you may need to revisit the data ingestion step for that table.
 
-=== 7. Connect Data Visualization to Impala
+=== 7. Create a Spark Job using Cloudera Data Engineering (CDE)
+
+In this section, you will create and schedule a Spark job that summarizes call center interactions for each day.
+
+This Spark job:
+
+* Reads data from the `callcenter_interaction` table.
+* Aggregates metrics such as resolved calls, unresolved calls, average duration, and average satisfaction rating.
+* Appends the summary into the `callcenter_interaction_summary` table for the given date.
+* Runs daily on a schedule via CDE.
+
+==== 7.1. Upload Spark Job
+
+. Navigate to *Cloudera Data Engineering* and click on *Jobs* from the side panel.
++
+image::../images/cde.png[cde, width=300, height=300]
++
+. Click on *Create Job* and enter the following values:
++
+image::../images/create_job.png[creating job]
++
+.. Select the job type as *Spark*.
+.. Give a name to your Spark job (e.g. `CallCenterSummary`).
+.. Under *Select Application Files*, upload the `CallCenterSummary.py` file  
+   (available in the assets folder on GitHub).
++
+image::../images/spark_job.png[creating spark job]
++
+. From the *Create and Run* dropdown, click *Create* (do not run it yet).
+. The script will automatically create the summary table `callcenter_interaction_summary` if it does not exist.
+
+==== 7.2. Run the Job Manually (Optional)
+
+. Trigger the Spark job once by passing a date argument, for example:
++
+----
+2025-08-12
+----
+. Verify that the output is appended to the summary table by running:
++
+[source,sql]
+----
+SELECT * 
+FROM callcenter_data.callcenter_interaction_summary
+ORDER BY interactiondate DESC;
+----
+
+==== 7.3. Create a CDE Airflow DAG
+
+Create an Airflow DAG to orchestrate the daily execution of the `CallCenterSummary.py` Spark job.  
+This ensures that the job runs only for unprocessed dates and maintains a record of what has already been processed.
+
+Before creating the DAG, upload the two input files to your S3 bucket.  
+Example files can be found in the `assets` folder:
+
+* `dates_to_run.txt` — should contain all the dates available in the `callcenter_interaction` table. Make sure the dates listed here match exactly with the ones already present in the table.  
+* `processed_dates.txt` — keeps track of dates that have already been processed.  
+
+Make sure both files are available in your S3 bucket before proceeding.
+
+image::../images/s3_files.png[Verify files in S3 bucket]
+
+The DAG logic:
+
+* Reads a file `dates_to_run.txt` from S3 containing all interaction dates. 
+* Checks against `processed_dates.txt` to determine which dates have already been processed.
+* Selects the next unprocessed date and passes it to the Spark job.
+* Triggers the Spark job (`CallCenterSummary`) using the `CDEJobRunOperator`.
+* Updates the `processed_dates.txt` file on S3 after successful execution.
+
+Steps:
+
+. Go back to the *Jobs* section from the left pane.
+. Click on *Create Job* and enter the following parameters:
++
+image::../images/create_job.png[Creating jobs]
++
+.. Select the job type as *Airflow*.
+.. Give a name to your job (e.g. `CallCenterSummaryDag`).
+.. Before deploying the DAG, update the following variables in the dag file with your project-specific values:
+
+* `S3_BUCKET` → Name of your S3 bucket (example: `project-axon-buk-364703ca`)
+* `DATES_FILE` → Path to your interaction dates file (example: `my-data/InteractionDate/dates_to_run.txt`)
+* `PROCESSED_FILE` → Path to your processed dates file (example: `my-data/InteractionDate/processed_dates.txt`)
+* `SPARK_JOB_NAME` → Name of the Spark job created in Section 7.1 (example: `CallCenterSummary`)
++
+image::../images/variable_values.png[variable values, width=700, height=300]
++
+.. Upload the DAG file `CallCenterSummary_Dag_job.py`  
+   (available in the assets folder).
+
+. From the *Create and Run* dropdown, click *Create* (do not run it yet).
++
+image::../images/airflow_job.png[tables verify]
++
+. The DAG is scheduled to run daily at `16:30 UTC`.
+. Once triggered, the DAG will:
+* Identify the next unprocessed interaction date.
+* Run the Spark job for that date.
+* Update the processed list on S3.
+
+You can view DAG run history and logs in the CDE Airflow UI.
+
+=== 8. Connect Data Visualization to Impala
 
 To enable Data Visualization to read data from Impala, you need to create a connection in the Data Visualization UI. 
 
@@ -254,7 +379,7 @@ image::../images/connection_cdw_impala.png[verify connection, width=450, height=
 - Once successful, click *Save*.
 - You can now use this connection to create/import datasets and build/import dashboards from Impala tables.
 
-=== 8. Import Dashboard into Cloudera Data Visualization
+=== 9. Import Dashboard into Cloudera Data Visualization
 
 - Go to *Cloudera Data Visualization*.
 
@@ -270,4 +395,13 @@ image::../images/dashboard_import_verify.png[import success, width=800, height=4
 - Once imported, navigate to the *Visuals* tab and click on the dashboard to open and view it.
 +
 image::../images/dashboard.png[dashboard]
+
+==== 9.1 Explore the *Callcenter-Summary* Dashboard
+
+- As part of the Spark job we ran earlier, records are written into the `callcenter_interaction_summary` table.  
+- In the same dashboard, click on the **Callcenter-Summary** tab.  
+- This dashboard is directly connected to the `callcenter_interaction_summary` table and provides insights into daily call center interactions.  
+- Whenever the Spark job appends new records to the table, you can refresh the dashboard and use the **Date filter** to view visuals for that day.  
++
+image::../images/callcenter_dashboard.png[Callcenter Summary Dashboard, width=800, height=450]
 

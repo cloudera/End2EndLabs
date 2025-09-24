@@ -1,0 +1,432 @@
+-- ==========================================================
+-- Database: NPS
+-- ==========================================================
+CREATE DATABASE IF NOT EXISTS nps_data;
+USE nps_data;
+
+DROP TABLE IF EXISTS nps_responses;
+
+CREATE EXTERNAL TABLE nps_responses (
+  Comment STRING,
+  CustomerID STRING,
+  ResponseID STRING,
+  SatisfactionLevel STRING,
+  Score INT,
+  SurveyChannel STRING,
+  SurveyDate STRING
+)
+STORED AS PARQUET
+LOCATION 's3a://${bucket_name}/user/${user_name}/NPS/nps-responses';
+
+-- ==========================================================
+-- Database: campaign_details
+-- ==========================================================
+CREATE DATABASE IF NOT EXISTS campaign_details;
+USE campaign_details;
+
+DROP TABLE IF EXISTS campaign_details;
+
+CREATE EXTERNAL TABLE campaign_details (
+  Budget DOUBLE,
+  CampaignID INT,
+  CampaignName STRING,
+  Channel STRING,
+  EndDate STRING,
+  SeasonID INT,
+  StartDate STRING,
+  Status STRING
+)
+STORED AS PARQUET
+LOCATION 's3a://${bucket_name}/user/${user_name}/MCL/campaign-details';
+
+DROP TABLE IF EXISTS campaign_performance;
+
+CREATE EXTERNAL TABLE campaign_performance (
+  AverageScore DOUBLE,
+  CampaignID INT,
+  ClickThroughRate DOUBLE,
+  ConversionRate DOUBLE,
+  PerformanceID STRING,
+  RevenueGenerated DOUBLE,
+  SalesVolume INT,
+  TotalResponses INT
+)
+STORED AS PARQUET
+LOCATION 's3a://${bucket_name}/user/${user_name}/MCL/campaign-performance';
+
+DROP TABLE IF EXISTS sales_seasonality;
+
+CREATE EXTERNAL TABLE sales_seasonality (
+  CustomerRetentionRate DOUBLE,
+  RevenueGenerated DOUBLE,
+  SalesVolume INT,
+  SeasonID INT,
+  SeasonName STRING
+)
+STORED AS PARQUET
+LOCATION 's3a://${bucket_name}/user/${user_name}/MCL/sales-seasonality';
+
+DROP TABLE IF EXISTS customer_campaign;
+
+CREATE EXTERNAL TABLE customer_campaign (
+  campaign_id INT,
+  customer_campaign_id INT,
+  customer_id INT,
+  enrolled_at STRING
+)
+STORED AS PARQUET
+LOCATION 's3a://${bucket_name}/user/${user_name}/MCL/customer-campaign';
+
+-- ==========================================================
+-- Database: callcenter_data
+-- ==========================================================
+CREATE DATABASE IF NOT EXISTS callcenter_data;
+USE callcenter_data;
+
+DROP TABLE IF EXISTS callcenter_interaction;
+
+CREATE EXTERNAL TABLE callcenter_interaction (
+  AgentID INT,
+  CallType STRING,
+  CustomerID INT,
+  Duration INT,
+  InteractionDate STRING,
+  InteractionID INT,
+  InteractionTime STRING,
+  IssueResolved STRING,
+  SatisfactionRating INT
+)
+STORED AS PARQUET
+LOCATION 's3a://${bucket_name}/user/${user_name}/CCL/callcenter';
+
+DROP TABLE IF EXISTS customer_complaints;
+
+CREATE EXTERNAL TABLE customer_complaints (
+  ComplaintDate STRING,
+  ComplaintID INT,
+  ComplaintStatus STRING,
+  ComplaintType STRING,
+  CustomerID INT,
+  ResolutionDetails STRING,
+  ResolutionEndDate STRING,
+  ResolutionStartDate STRING,
+  ResolutionTime INT
+)
+STORED AS PARQUET
+LOCATION 's3a://${bucket_name}/user/${user_name}/CCL/customer-complaints';
+
+-- ==========================================================
+-- Database: FRS
+-- ==========================================================
+CREATE DATABASE IF NOT EXISTS frsdatabase;
+USE frsdatabase;
+
+DROP TABLE IF EXISTS revenue_data;
+
+CREATE EXTERNAL TABLE revenue_data (
+  Amount DOUBLE,
+  BranchID INT,
+  Description STRING,
+  Record_Date STRING,
+  RevenueID BIGINT,
+  RevenueType STRING
+)
+STORED AS PARQUET
+LOCATION 's3a://${bucket_name}/user/${user_name}/frsdata/revenue';
+
+DROP TABLE IF EXISTS expense_data;
+
+CREATE EXTERNAL TABLE expense_data (
+  Amount DOUBLE,
+  BranchID INT,
+  Description STRING,
+  ExpenseID INT,
+  ExpenseType STRING,
+  Record_Date STRING
+)
+STORED AS PARQUET
+LOCATION 's3a://${bucket_name}/user/${user_name}/frsdata/expense';
+
+DROP TABLE IF EXISTS pnl_data;
+
+CREATE EXTERNAL TABLE pnl_data (
+  BranchID INT,
+  NetProfitLoss DOUBLE,
+  PnLID BIGINT,
+  ProfitMargin DOUBLE,
+  Record_Date STRING,
+  TotalExpense DOUBLE,
+  TotalRevenue DOUBLE
+)
+STORED AS PARQUET
+LOCATION 's3a://${bucket_name}/user/${user_name}/frsdata/profitnloss';
+
+DROP TABLE IF EXISTS cashflow_data;
+
+CREATE EXTERNAL TABLE cashflow_data (
+  BranchID INT,
+  CashFlowID BIGINT,
+  CashInflow DOUBLE,
+  CashOutflow DOUBLE,
+  FinancingCashFlow DOUBLE,
+  InvestingCashFlow DOUBLE,
+  NetCashFlow DOUBLE,
+  OperatingCashFlow DOUBLE,
+  Record_Date STRING
+)
+STORED AS PARQUET
+LOCATION 's3a://${bucket_name}/user/${user_name}/frsdata/cashflow';
+
+-- ==========================================================
+-- Database: CBS
+-- ==========================================================
+CREATE DATABASE IF NOT EXISTS core_banking_db;
+USE core_banking_db;
+
+DROP TABLE IF EXISTS customer;
+
+CREATE EXTERNAL TABLE customer (
+  address STRING,
+  city STRING,
+  country STRING,
+  created_at STRING,
+  customer_id INT,
+  customer_status STRING,
+  customer_type STRING,
+  dob STRING,
+  email STRING,
+  first_name STRING,
+  gender STRING,
+  kyc_status STRING,
+  last_name STRING,
+  phone STRING,
+  postal_code STRING,
+  relationship_manager_id INT,
+  source STRING,
+  state STRING,
+  updated_at STRING
+)
+STORED AS PARQUET
+LOCATION 's3a://${bucket_name}/user/${user_name}/CBS/customer';
+
+DROP TABLE IF EXISTS account;
+
+CREATE EXTERNAL TABLE account (
+  account_id INT,
+  account_number INT,
+  account_status STRING,
+  account_type STRING,
+  balance DOUBLE,
+  branch_id INT,
+  created_at STRING,
+  currency_type STRING,
+  customer_id INT,
+  interest_rate DOUBLE,
+  last_transaction_date STRING
+)
+STORED AS PARQUET
+LOCATION 's3a://${bucket_name}/user/${user_name}/CBS/account';
+
+DROP TABLE IF EXISTS transaction;
+
+CREATE EXTERNAL TABLE transaction (
+  account_number INT,
+  amount DOUBLE,
+  branch_id INT,
+  currency_type STRING,
+  description STRING,
+  transaction_date STRING,
+  transaction_due_date STRING,
+  transaction_id INT,
+  transaction_mode STRING,
+  transaction_reference_id STRING,
+  transaction_status STRING,
+  transaction_type STRING
+)
+STORED AS PARQUET
+LOCATION 's3a://${bucket_name}/user/${user_name}/CBS/transaction';
+
+DROP TABLE IF EXISTS feedback;
+
+CREATE EXTERNAL TABLE feedback (
+  branch_id INT,
+  customer_id INT,
+  feedback_comment STRING,
+  feedback_date STRING,
+  feedback_id INT,
+  feedback_rating INT,
+  feedback_status STRING,
+  feedback_type STRING
+)
+STORED AS PARQUET
+LOCATION 's3a://${bucket_name}/user/${user_name}/CBS/feedback';
+
+-- ==========================================================
+-- Database: HRMS
+-- ==========================================================
+CREATE DATABASE IF NOT EXISTS hrms;
+USE hrms;
+
+DROP TABLE IF EXISTS hrms_employee;
+
+CREATE EXTERNAL TABLE hrms_employee (
+  branch_id INT,
+  created_at STRING,
+  department STRING,
+  email STRING,
+  employee_id INT,
+  employee_status STRING,
+  first_name STRING,
+  hire_date STRING,
+  last_name STRING,
+  phone STRING,
+  position STRING,
+  salary DOUBLE,
+  updated_at STRING
+)
+STORED AS PARQUET
+LOCATION 's3a://${bucket_name}/user/${user_name}/HRMS/employee';
+
+DROP TABLE IF EXISTS hrms_attendance;
+
+CREATE EXTERNAL TABLE hrms_attendance (
+  attendance_date STRING,
+  attendance_id INT,
+  attendance_status STRING,
+  created_at STRING,
+  employee_id INT
+)
+STORED AS PARQUET
+LOCATION 's3a://${bucket_name}/user/${user_name}/HRMS/attendance';
+
+DROP TABLE IF EXISTS hrms_performance;
+
+CREATE EXTERNAL TABLE hrms_performance (
+  comments STRING,
+  created_at STRING,
+  employee_id INT,
+  performance_id INT,
+  performance_rating INT,
+  review_date STRING
+)
+STORED AS PARQUET
+LOCATION 's3a://${bucket_name}/user/${user_name}/HRMS/performance';
+
+DROP TABLE IF EXISTS hrms_time_tracking;
+
+CREATE EXTERNAL TABLE hrms_time_tracking (
+  created_at STRING,
+  employee_id INT,
+  hours_worked DOUBLE,
+  overtime_hours DOUBLE,
+  time_tracking_id INT,
+  tracking_date STRING,
+  time_tracking_status STRING
+)
+STORED AS PARQUET
+LOCATION 's3a://${bucket_name}/user/${user_name}/HRMS/timetracking';
+
+-- ==========================================================
+-- Database: branch_management_db
+-- ==========================================================
+CREATE DATABASE IF NOT EXISTS branch_management_db;
+USE branch_management_db;
+
+DROP TABLE IF EXISTS branches;
+
+CREATE EXTERNAL TABLE branches (
+  branch_id INT,
+  branch_name STRING,
+  established_date STRING,
+  ifsc_code STRING,
+  location STRING,
+  manager_id STRING,
+  region STRING
+)
+STORED AS PARQUET
+LOCATION 's3a://${bucket_name}/user/${user_name}/branch_mgmt/branches';
+
+DROP TABLE IF EXISTS inventory;
+
+CREATE EXTERNAL TABLE inventory (
+  branch_id INT,
+  inventory_id STRING,
+  product_id STRING,
+  product_name STRING,
+  status STRING,
+  stock_quantity INT,
+  stock_value DOUBLE,
+  unit_price DOUBLE
+)
+STORED AS PARQUET
+LOCATION 's3a://${bucket_name}/user/${user_name}/branch_mgmt/inventory';
+
+DROP TABLE IF EXISTS assets;
+
+CREATE EXTERNAL TABLE assets (
+  asset_id STRING,
+  asset_type STRING,
+  location STRING,
+  purchase_date STRING,
+  status STRING
+)
+STORED AS PARQUET
+LOCATION 's3a://${bucket_name}/user/${user_name}/branch_mgmt/assets';
+
+DROP TABLE IF EXISTS daily_operations;
+
+CREATE EXTERNAL TABLE daily_operations (
+  branch_id INT,
+  customers_served INT,
+  operation_date STRING,
+  operation_id STRING,
+  operational_cost DOUBLE,
+  staff_count INT,
+  transactions_processed INT
+)
+STORED AS PARQUET
+LOCATION 's3a://${bucket_name}/user/${user_name}/branch_mgmt/operations';
+
+-- ==========================================================
+-- Database: task_management_db
+-- ==========================================================
+CREATE DATABASE IF NOT EXISTS task_management_db;
+USE task_management_db;
+
+DROP TABLE IF EXISTS tasks;
+
+CREATE EXTERNAL TABLE tasks (
+  assigned_to INT,
+  branch_id INT,
+  created_at STRING,
+  due_date STRING,
+  priority STRING,
+  project_id INT,
+  status STRING,
+  task_id INT,
+  task_name STRING,
+  updated_at STRING
+)
+STORED AS PARQUET
+LOCATION 's3a://${bucket_name}/user/${user_name}/task_mgmt/tasks';
+
+-- ==========================================================
+-- Database: footfalldb
+-- ==========================================================
+CREATE DATABASE IF NOT EXISTS footfalldb;
+USE footfalldb;
+
+DROP TABLE IF EXISTS footfallsummaryy;
+
+CREATE EXTERNAL TABLE footfallsummaryy (
+  SummaryID INT,
+  BranchID INT,
+  Record_Date STRING,
+  TotalFootfall INT,
+  TotalExit INT,
+  NetFootfall INT,
+  PeakHour STRING,
+  OffPeakHour STRING
+)
+STORED AS PARQUET
+LOCATION 's3a://${bucket_name}/user/${user_name}/footfalldb/footfallsummary';
