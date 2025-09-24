@@ -15,4 +15,4 @@ jobs:
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer ${{ secrets.PARENT_REPO_TOKEN }}" \
             https://api.github.com/repos/cloudera/cloudera-partners/dispatches \
-            -d '{"event_type":"update-submodule"}'
+            -d '{"event_type":"update-submodule", "client_payload": {"submodule": "End2EndLabs"}}'
