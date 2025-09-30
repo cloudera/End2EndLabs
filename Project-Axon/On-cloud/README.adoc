@@ -60,7 +60,7 @@ This project was developed and tested on the following component versions:
 
 == Project Workflow
 
-image::../images/project_flow_cloud.png[project_flow]
+image::../images/project_flow.png[project_flow]
 
 == Steps to Run
 

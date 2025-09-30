@@ -46,6 +46,7 @@ Ensure you have a running **Cloudera Private Cloud Base Cluster** with the follo
 - Knox
 - Hue
 - Cloudera DataViz
+- Cloudera Data Engineering Service
 
 === 3. Host File Configuration
 
@@ -79,6 +80,7 @@ This project was developed and tested on the following component versions:
 - **Cloudera Flow Management (CFM)**: 2.1.7.2002-3  
 - **Apache NiFi**: 1.28.1  
 - **Cloudera DataViz**: 8.0.4-b47.p1.67141340
+- **Data Services**: 1.5.4 SP1
 
 == Technology Stack
 
@@ -212,9 +214,15 @@ kinit -kt /run/cloudera-scm-agent/process/1546343796-hdfs-NAMENODE/hdfs.keytab h
 ----
 
 ==== Step 4: Create HDFS target directory
+
+Create the /Axon-Files/ directory and set the permissions using the following commands. Replace <username> with your username (e.g., admin).
+
 [source,shell]
 ----
 hdfs dfs -mkdir /Axon-Files
+hdfs dfs -chown -R <username>:hive /Axon-Files
+hdfs dfs -chown -R <username>:hive /warehouse
+hdfs dfs -chmod -R 775 /Axon-Files
 ----
 
 === 7. Update the Parameter Contexts in NiFi Flow
@@ -263,7 +271,7 @@ Go to **Hue → Query Editor → Hive**.
 
 To create all the required databases and tables at once, simply:
 
-- Open the https://github.com/cloudera/cloudera-partners/blob/project-axon/Project-Axon/create_queries.txt[create_queries.txt] file from the cloned folder.
+- Open the 'create_queries.txt' file from the cloned folder.
 - Copy the entire content.
 - Paste it into the Hue Query Editor.
 - Select all and click the **Run** button.
@@ -286,7 +294,62 @@ image::../images/table_verify.png[tables verify]
 
 If any table shows a count of `0`, you may need to revisit the data ingestion step for that table.
 
-=== 10. Connect DataViz to Impala
+=== 10. Create a Spark Job using Cloudera Data Engineering (CDE)
+
+In this section, you will create and schedule a Spark job that summarizes call center interactions for each day.
+
+This Spark job:
+
+* Reads data from the `callcenter_interaction` table.
+* Aggregates metrics such as resolved calls, unresolved calls, average duration, and average satisfaction rating.
+* Appends the summary into the `callcenter_interaction_summary` table for the given date.
+* Runs daily on a schedule via CDE.
+
+==== 10.1. Upload Spark Job
+
+. Click on *Data Services* from Cloudera Manager UI and click on *Open CDP Private Cloud Data Services* to access the Data Services Homepage .
++
+image::../images/pvc_data_services.png[cde data service]
++
+. Navigate to *Cloudera Data Engineering* and click on *Jobs* from the side panel.
++
+image::../images/cde.png[cde, width=300, height=300]
++
+. Before creating the job, make sure you open the file in an editor and replace the placeholder `<username>` with the user you are planning to run the script.
++
+image::../images/username_spark_job.png[changing username]
++
+. Click on *Create Job* and enter the following values:
++
+image::../images/create_job.png[creating job]
++
+.. Select the job type as *Spark*.
+.. Give a name to your Spark job (e.g. `CallCenterSummary`).
+.. Under *Select Application Files*, upload the `CallCenterSummary.py` file  
+   (available in the assets folder on GitHub).
++
+image::../images/spark_job.png[creating spark job]
++
+. From the *Create and Run* dropdown, click *Create* (do not run it yet).
+. The script will automatically create the summary table `callcenter_interaction_summary` if it does not exist.
+
+==== 10.2. Run the Job
+
+. Trigger the Spark job once by passing a date argument, for example:
++
+----
+2025-08-12
+----
+. Verify that the output is appended to the summary table by running:
+
+[source,sql]
+----
+SELECT * 
+FROM callcenter_data.callcenter_interaction_summary
+ORDER BY interactiondate DESC;
+----
+
+==== 11. Connect DataViz to Impala
 
 To enable DataViz to read data from Hive, you need to create a connection in the DataViz UI. 
 
@@ -320,7 +383,7 @@ image::../images/connection_verify.png[verify connection, width=500, height=450]
 - Once successful, click *Save*.
 - You can now use this connection to create/import datasets and build/import dashboards from Impala tables.
 
-=== 11. Add Ranger Policy for DataViz Access
+=== 12. Add Ranger Policy for DataViz Access
 
 Before importing the dashboard into Cloudera DataViz, you must ensure the `dataviz` user has access to the Impala databases and tables. This is done by updating an existing policy in Apache Ranger.
 
@@ -334,7 +397,7 @@ image::../images/dataviz_policy.png[dataviz policy]
 - In the *Users* section, add `dataviz` to the list.
 - Scroll down and click *Save*.
 
-=== 12. Import Dashboard into DataViz
+=== 13. Import Dashboard into DataViz
 
 - Go to *Cloudera DataViz*.  
   You can access the DataViz UI using the default admin credentials:  
@@ -353,7 +416,16 @@ image::../images/dashboard_import_verify.png[import success, width=800, height=4
 +
 image::../images/dashboard.png[dashboard]
 
-=== 13. Accessing DataViz as Individual Users
+==== 13.1 Explore the *Callcenter-Summary* Dashboard
+
+- As part of the Spark job we ran earlier, records are written into the `callcenter_interaction_summary` table.  
+- In the same dashboard, click on the **Callcenter-Summary** tab.  
+- This dashboard is directly connected to the `callcenter_interaction_summary` table and provides insights into daily call center interactions.  
+- Whenever the Spark job appends new records to the table, you can refresh the dashboard and use the **Date filter** to view visuals for that day.  
++
+image::../images/callcenter_dashboard.png[Callcenter Summary Dashboard, width=800, height=450]
+
+=== 14. Accessing DataViz as Individual Users
 
 To allow multiple users to view or interact with dashboards, follow the steps below to create individual user accounts in Cloudera DataViz:
 
