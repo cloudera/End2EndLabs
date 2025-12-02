@@ -6,7 +6,7 @@ from pyspark.sql import SparkSession
 import sys
 
 ### Update the username
-username = "aktiwari".replace("-", "_")  ## Example: "apac01"
+username = "admin".replace("-", "_")  ## Example: "apac01"
 
 # Expect 1 arg: interaction_date
 if len(sys.argv) != 2:

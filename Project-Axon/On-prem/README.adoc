@@ -48,6 +48,13 @@ Ensure you have a running **Cloudera Private Cloud Base Cluster** with the follo
 - Cloudera DataViz
 - Cloudera Data Engineering Service
 
+[NOTE]
+====
+If you haven't installed NiFi and NiFi Registry, please follow the steps 
+link:https://docs-archive.cloudera.com/cfm/2.0.4/deployment/topics/cfm-install-nifi-base.html[here]
+to install NiFi and NiFi Registry and to set up the Ranger authorization policies.
+====
+
 === 3. Host File Configuration
 
 Update the `/etc/hosts` file to resolve Cloudera node hostnames. This is required to access the Knox gateway and other web UIs from your browser.
@@ -215,11 +222,12 @@ kinit -kt /run/cloudera-scm-agent/process/1546343796-hdfs-NAMENODE/hdfs.keytab h
 
 ==== Step 4: Create HDFS target directory
 
-Create the /Axon-Files/ directory and set the permissions using the following commands. Replace <username> with your username (e.g., admin).
-
+Create the /Axon-Files/ directory and set the permissions using the following commands.
 [source,shell]
 ----
 hdfs dfs -mkdir /Axon-Files
+# Replace <username> with your user.
+# For example: hdfs dfs -chown -R admin:hive /Axon-Files
 hdfs dfs -chown -R <username>:hive /Axon-Files
 hdfs dfs -chown -R <username>:hive /warehouse
 hdfs dfs -chmod -R 775 /Axon-Files

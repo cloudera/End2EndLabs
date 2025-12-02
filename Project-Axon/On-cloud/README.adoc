@@ -266,6 +266,7 @@ image::../images/create_job.png[creating job]
 .. Give a name to your Spark job (e.g. `CallCenterSummary`).
 .. Under *Select Application Files*, upload the `CallCenterSummary.py` file  
    (available in the assets folder on GitHub).
+.. In the arguments section, enter `{{ interaction_date }}` in the box.
 +
 image::../images/spark_job.png[creating spark job]
 +
@@ -288,7 +289,33 @@ FROM callcenter_data.callcenter_interaction_summary
 ORDER BY interactiondate DESC;
 ----
 
-==== 7.3. Create a CDE Airflow DAG
+==== 7.3. Create an Airflow Connection
+
+. Navigate to the *Virtual Cluster Details* page and click on *Airflow UI*.
++
+image::../images/vc_details_page.png[vc_details_page]
++
+. In the top navigation bar, go to *Admin* → *Connections* to create a new connection.
++
+image::../images/airflow_connection.png[airflow_connection]
++
+. On the Connections page, click on the *+* icon to create a new connection.
++
+image::../images/add_airflow_con.png[add_airflow_con]
++
+. Fill in the following details:
+
+.. *Connection ID*: `aws_default`
+.. *Connection Type*: *Amazon Web Services*
+.. *AWS Access Key ID*: Enter the Access Key ID of your AWS account.
+.. *AWS Secret Access Key*: Enter the Secret Access Key of your AWS account.
+
+. Click on *Test* to validate the connection.
+. Once the test passes, click *Save*.
++
+image::../images/airflow_con_page.png[airflow_con_page]
+
+==== 7.4. Create a CDE Airflow DAG
 
 Create an Airflow DAG to orchestrate the daily execution of the `CallCenterSummary.py` Spark job.  
 This ensures that the job runs only for unprocessed dates and maintains a record of what has already been processed.
