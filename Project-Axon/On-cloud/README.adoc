@@ -241,6 +241,80 @@ image::../images/table_verify.png[tables verify]
 
 If any table shows a count of `0`, you may need to revisit the data ingestion step for that table.
 
+=== 6.2. Integrate Hue SQL AI Assistant (Optional)
+
+Follow the steps below to integrate the Hue SQL AI Assistant with Amazon Bedrock. While there are multiple ways to integrate the Hue SQL AI Assistant, this demo uses Amazon Bedrock.
+
+==== Prerequisites
+- Access to the AWS Management Console
+- Permissions to use Amazon Bedrock and IAM
+- Cloudera Data Warehouse with a running Hive Virtual Warehouse
+
+==== Steps
+
+. Log in to the AWS Management Console and navigate to the *Amazon Bedrock* service.
+
+. In the left navigation pane, click *API keys*.
+.. Under *Long-term API keys*, click *Generate long-term API key*.
++
+image::../images/bedrock_create_apikey.png[bedrock_access_key]
++
+.. Set the expiration date and generate the key.
++
+image::../images/apikey_generate.png[apikey_generate]
++
+.. Make a note of the generated API key.
+
+. Navigate to the *IAM* service.
+.. Go to *Users* and search for the user named `BedrockAPIKey-xxxx`.
+.. Select the user and click *Create access key*.
++
+image::../images/bedrock_access_key.png[bedrock_access_key]
++
+.. Copy the *Access Key ID* and *Secret Access Key*.
++
+These credentials will be used by Hue to access Amazon Bedrock.
+
+. Go to the *Cloudera Data Warehouse* service.
+.. Click the three-dot menu next to the *Hive Virtual Warehouse* and select *Edit*.
++
+image::../images/hive_vw_edit.png[hive_vw_edity]
++
+.. Navigate to the *Configurations* tab.
+.. Select *Hue* from the left panel.
+
+. From the *Configuration files* dropdown, select `hue-safety-valve`.
+
+. Remove any existing content and paste the following configuration, replacing the placeholders with your values:
++
+[source,ini]
+----
+[aws]
+[[aws_accounts]]
+[[[default]]]
+access_key_id=<AWS_ACCOUNT_ACCESS_KEY_ID>
+secret_access_key=<AWS_ACCOUNT_SECRET_ACCESS_KEY>
+region=<AWS_REGION>
+
+[[bedrock_account]]
+access_key_id=<BEDROCK_USER_ACCESS_KEY_ID>
+secret_access_key=<BEDROCK_USER_SECRET_ACCESS_KEY>
+region=<AWS_REGION>
+
+[desktop]
+[[ai_interface]]
+service='bedrock'
+model='claude3'
+----
++
+. Click *Apply* and wait for the Virtual Warehouse to update.
++
+image::../images/hue_safety_valve.png[hue_safety_valve]
++
+. When you open Hue, the AI Assistant bar is visible at the top, allowing you to generate, explain, and optimize queries.
++
+image::../images/hue_assistant.png[hue_assistant]
+
 === 7. Create a Spark Job using Cloudera Data Engineering (CDE)
 
 In this section, you will create and schedule a Spark job that summarizes call center interactions for each day.
