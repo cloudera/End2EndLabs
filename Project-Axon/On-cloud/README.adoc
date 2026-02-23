@@ -488,7 +488,7 @@ image::../images/connection_cdw_impala.png[verify connection, width=450, height=
 +
 image::../images/import_visual.png[Import Visual]
 +
-- Upload the dashboard JSON file: https://github.com/cloudera/cloudera-partners/blob/project-axon/Project-Axon/project_axon_dashboard.json[project_axon_dashboard.json].
+- Upload the dashboard JSON file: https://github.com/cloudera/End2EndLabs/blob/main/Project-Axon/assets/project_axon_dashboard.json[project_axon_dashboard.json].
 - After uploading, click on *Accept and Import*, you will see an *Import Successful* message along with the list of datasets that were imported as part of the dashboard.
 +
 image::../images/dashboard_import_verify.png[import success, width=800, height=450]
@@ -505,4 +505,91 @@ image::../images/dashboard.png[dashboard]
 - Whenever the Spark job appends new records to the table, you can refresh the dashboard and use the **Date filter** to view visuals for that day.  
 +
 image::../images/callcenter_dashboard.png[Callcenter Summary Dashboard, width=800, height=450]
+
+=== 10. Integrate AI Assistant in Cloudera Data Visualization (Optional)
+
+This section describes how to integrate the AI Assistant in Cloudera Data Visualization using a model hosted on Cloudera AI Inference.
+
+Alternatively, the AI Assistant can also be integrated using external model providers such as OpenAI or Amazon Bedrock. For more details on configuring external model providers, click https://docs.cloudera.com/data-visualization/8/howto-manage-site-settings/topics/viz-site-settings-ai-config.html[here].
+
+==== Prerequisites
+
+Before proceeding, ensure the following prerequisites are met:
+
+* You have administrator access to the Cloudera Data Visualization service.
+* A model is deployed using Cloudera AI Inference, and a model endpoint has been created.
+** Example model: Qwen/Qwen2.5-7B-Instruct
+
+==== Configuration Steps
+
+. Navigate to the Cloudera Data Visualization service from either:
+* The Base Cluster, or
+* The Cloudera Data Warehouse service
+
+. Click the *Settings* (gear) icon and select *Site Settings*.
++
+image::../images/site_settings.png[site_settings, width=800, height=450]
++
+. Under *AI Settings*, select *Completion*, then click *Create Profile*.
++
+image::../images/create_profile.png[create_profile, width=800, height=450]
++
+. Enter the following details to create a completion profile:
++
+* *Name*: Enter a name for the AI model profile.
+* *Engine*: Select *Cloudera AI Inference* from the drop-down list.
+* *API Key*: Enter the CDP Token associated with the deployed model endpoint.
+* *Service URL*: Enter the base URL of the model endpoint from the Cloudera AI Registry.
+* *Model*: Enter the name of the deployed model.
+
+. Click *Test* to validate the configuration.
++
+image::../images/verify_profile.png[verify_profile, width=400, height=450]
++
+. Once the profile status shows *Profile Verified*, click *Save* to complete the setup.
+
+==== Creating an AI Visual
+
+This section describes how to create and use an AI Visual in Cloudera Data Visualization.
+
+. Import the https://github.com/cloudera/End2EndLabs/blob/main/Project-Axon/assets/AI_Visual.json[`AI_Visual.json`] to add the AI Visual dashboard to Cloudera Data Visualization, following the same process used in the earlier steps.
++
+. In the AI Visual input box, enter prompts to interact with your dataset.  
+  The AI Visual enables conversational querying over the selected dataset.
++
+.Example AI Visual Prompts
+[cols="2,3", options="header"]
+|===
+| Example Prompt | Visual Updated
+
+| What is the count of the transactions and total revenue in the East and West regions?
+| Revenue by Region
+
+| Show the sum of transaction amounts by transaction type for Credit and Withdrawal
+| Amount by Transaction Type
+
+| Show the total revenue for records dated in 2023 and 2024
+| Total Revenue by Date
+|===
++
+image::../images/ai_visual.png[ai_visual, width=700, height=450]
++
+. Once the AI Visual generates a response, click the *Share* icon and select *Share Parameters*.
+  This allows the generated parameters to update other visuals in the dashboard, if applicable.
++
+image::../images/share_parameters.png[share_parameters, width=700, height=450]
++
+NOTE: The parameters referenced by the AI Visual must match the parameters used in the corresponding visuals for them to update correctly.
++
+image::../images/updated_visual.png[updated_visual, width=700, height=450]
++
+. You can create multiple AI model profiles, as described in the previous section, and dynamically switch between them using the AI Visual settings.
++
+image::../images/change_profile.png[change_profile, width=700, height=450]
++
+. You can also provide custom SQL generation instructions within the AI Visual settings to control how queries are generated.
+
+==== Result
+
+The AI Visual allows users to explore data conversationally and dynamically drive other dashboard visuals using shared parameters.
 
