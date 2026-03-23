@@ -6,7 +6,7 @@
 
 == Introduction
 
-*Project Axon* is a comprehensive end-to-end demonstration of Cloudera’s capabilities across the full data lifecycle — from data ingestion to dashboarding. 
+*Project Axon* is a comprehensive end-to-end demonstration of Cloudera's capabilities across the full data lifecycle — from data ingestion to dashboarding. 
 
 The goal of this project is to help partners:
 - Understand how to practically use Cloudera Private Cloud for real-time and batch analytics.
@@ -51,9 +51,56 @@ Ensure you have a running **Cloudera Private Cloud Base Cluster** with the follo
 [NOTE]
 ====
 If you haven't installed NiFi and NiFi Registry, please follow the steps 
-link:https://docs-archive.cloudera.com/cfm/2.0.4/deployment/topics/cfm-install-nifi-base.html[here]
-to install NiFi and NiFi Registry and to set up the Ranger authorization policies.
+link:https://docs-archive.cloudera.com/cfm/2.0.4/deployment/topics/cfm-install-nifi-base.html[here] or below to install them using Cloudera Flow Management parcels and CSDs.
 ====
+
+==== Step 1: Download the CFM Parcel
+
+1. Navigate to the link:https://archive.cloudera.com/[Cloudera Archive] to download the required parcels.
+
+2. Get the **CFM parcel** compatible with your Cloudera Manager version, operating system, and JDK.
+
+3. Add the parcel's URL in **Cloudera Manager → Administration → Parcels** and distribute it across the cluster.
+
+==== Step 2: Install the CFM CSD
+
+Download the corresponding **CFM CSD (JAR)** file and copy it to the following directory on the Cloudera Manager server.
+
+[source,bash]
+----
+/opt/cloudera/csd
+----
+
+Restart the Cloudera Manager server:
+
+[source,bash]
+----
+sudo systemctl restart cloudera-scm-server
+----
+
+==== Step 3: Activate the CFM Parcel
+
+Navigate to **Administration → Parcels**, locate the **CFM parcel**, and click **Activate** after distribution is complete.
+
+==== Step 4: Add the NiFi Service
+
+1. In **Cloudera Manager**, navigate to **Clusters → Add Service**.
+2. Select **NiFi** and assign the service roles to appropriate nodes.
+3. Ensure required dependencies such as **Ranger** and **Knox** are selected.
+4. Proceed with the default configuration to complete the installation.
+
+==== Step 5: Add the NiFi Registry Service
+
+Repeat the **Add Service** wizard and select **NiFi Registry**, then assign the role and complete the installation using default configurations.
+
+==== Step 6: Configure Ranger Policy
+
+1. Log in to **Ranger Admin**.
+2. Navigate to **NiFi Policies** and create a policy with scope `/*`.
+3. Add the **Knox**, **NiFi**, **NiFi Registry**, and the user used to access Knox (for example, `admin`) to the policy.
+4. Also add these users to the **Hadoop SQL** and **HDFS Global** policies to ensure the required access permissions.
+
+After applying the policy, the **NiFi UI should be accessible through Knox**.
 
 === 3. Host File Configuration
 
@@ -109,21 +156,19 @@ Clone the repository containing the dummy data generators and run the script to 
 
 [source,shell]
 ----
-git clone https://github.com/cloudera/cloudera-partners.git
-cd cloudera-partners
-git checkout project-axon
-cd Project-Axon/On-prem
+sudo yum install -y python3 git
+git clone https://github.com/cloudera/End2EndLabs.git
+cd Project-Axon/assets
 ----
 
 === 2. Set Up Python Virtual Environment and Install Dependencies
 
 [source,shell]
 ----
-sudo yum install -y python3 git
 python3 -m ensurepip --upgrade
 python3 -m venv venv
 source venv/bin/activate
-pip3 install -r ../assets/requirements.txt
+pip3 install -r requirements.txt
 
 # Verify Flask version
 python3 -m flask --version
@@ -133,7 +178,7 @@ python3 -m flask --version
 
 [source,shell]
 ----
-bash ../assets/run_all.sh
+bash run_all.sh
 ----
 
 - After running the script, verify that the dummy data endpoints are active using a `curl` command.
@@ -163,7 +208,7 @@ Sample JSON response from the campaign API:
 
 You should see a JSON response similar to the above.
 
-=== 4. Configuration on `NiFi Registry` UI
+=== 4. Configuration on NiFi Registry UI
 
 .. Login to the `NiFi Registry` UI.
 .. Create a new bucket (for example, name it `Axon-Files`).
@@ -187,7 +232,9 @@ image::../images/import_flow_registry.png[import flow registry, width=500, heigh
 
 === 5. Import the NiFi Flow into NiFi from Registry
 
-- Go to NiFi UI.
+- Open the **NiFi UI**.
+- Navigate to **Controller Settings** and click the **Add (+)** icon to create a new **NiFi Registry Client**.
+- Enter the **NiFi Registry URL**, then click **Save**.
 - Drag a new **Process Group** onto the canvas.
 - Give it any name (e.g., `Project-Axon`).
 +
@@ -272,13 +319,21 @@ image::../images/http_url.png[HTTP URL Configuration]
 
 NOTE: These parameter values will be automatically picked up by the corresponding processors and controller services in the flow. No need to update them manually in each sub-flow.
 
-=== 8. Start the `Project-Axon` NiFi Flow
-- Inside the process group, right-click and select **Start**.
+=== 8. Start the Project-Axon NiFi Flow
+- Outside the process group, right-click on **Project-Axon** and select **Enable all controller services**.
+- Then right-click again and select **Start** to start all the flows.
 +
 image::../images/start_flow.png[start flow]
 
 NOTE: After starting the flow, run it for a maximum of 5 minutes. It will generate approximately **50–80 flow files**.  
 After that, right-click and click **Stop**, otherwise it will continue generating files indefinitely.
+
+- After stopping the flow, run the following command again to update the ownership of the generated files:
+
+[source,bash]
+----
+hdfs dfs -chown -R <username>:hive /Axon-Files
+----
 
 === 9. Create Hive Tables via Hue
 
@@ -413,7 +468,7 @@ image::../images/username_spark_job.png[changing username]
 image::../images/create_job.png[creating job]
 +
 .. Select the job type as *Spark*.
-.. Give a name to your Spark job (e.g. `CallCenterSummary`).
+.. Enter the name as `CallCenterSummary` for the Spark job.
 .. Under *Select Application Files*, upload the `CallCenterSummary.py` file  
    (available in the assets folder on GitHub).
 +
