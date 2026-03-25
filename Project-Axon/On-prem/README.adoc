@@ -280,11 +280,10 @@ Create the /Axon-Files/ directory and set the permissions using the following co
 ----
 hdfs dfs -mkdir /Axon-Files
 # Replace <username> with your user.
-# For example: hdfs dfs -chown -R admin:hive /Axon-Files
-hdfs dfs -chown -R <username>:hive /Axon-Files
-hdfs dfs -chown -R <username>:hive /warehouse
-hdfs dfs -chmod -R 775 /Axon-Files
-hdfs dfs -ls /Axon-Files/   # You can use this command to verify the data when it comes to HDFS from NiFi
+# For example: hdfs dfs -chown -R admin:hive /Axon-Files /warehouse
+hdfs dfs -chown -R <username>:hive /Axon-Files /warehouse
+hdfs dfs -chmod -R 775 /Axon-Files /warehouse
+hdfs dfs -ls /Axon-Files/ /warehouse  # You can use this command to verify the data when it comes to HDFS from NiFi
 ----
 
 === 7. Update the Parameter Contexts in NiFi Flow
