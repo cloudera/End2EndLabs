@@ -15,7 +15,11 @@ The goal of this project is to help partners:
 
 **Use Case Chosen:** *Real-Time Network Quality & Customer Experience Analytics*
 
-This use case helps simulate and analyze the network performance and customer experience of telco users using dummy data, real time streaming allowing visual insights via dashboards.
+This usecase demonstrates an end-to-end real-time data pipeline for monitoring telecom network quality and customer experience.
+
+The solution simulates telecom call events, ingests them using a streaming pipeline, enriches them with customer data, computes real-time KPIs, and visualizes insights through dashboards.
+
+The goal is to show how network issues can be detected and analysed in near real time.
 
 == Prerequisites
 
