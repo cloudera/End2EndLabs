@@ -73,7 +73,7 @@ Clone the repository containing the dummy data generators and run the script to 
 ----
 sudo yum install -y python3 git
 git clone https://github.com/cloudera/End2EndLabs.git
-cd Project-Axon/assets
+cd End2EndLabs/Project-Axon/assets
 ----
 
 === 2. Set Up Python Virtual Environment and Install Dependencies
@@ -93,7 +93,7 @@ python3 -m flask --version
 
 [source,shell]
 ----
-bash ../assets/run_telco.sh
+bash run_telco.sh
 ----
 
 - After running the script, verify that the dummy data endpoints are active using a `curl` command.
@@ -231,14 +231,7 @@ STORED AS PARQUET
 LOCATION 's3a://${s3_bucket_name}/user/${user_name}/telco-usecase/cdr-data/';
 ----
 
-=== 7. Create customer_profiles table with static network dataset using spark job in Cloudera Data Engineering
-In this step, you will create a Spark job that reads a static dataset of customer profiles uploaded on S3 bucket and creates an Iceberg table named `customer_profiles`. This table will be used later to enrich the raw CDR data.
-
-==== Upload the customer dataset `customer.csv` to s3 bucket
-Make sure to upload the `customer.csv` file (available in the assets folder) to your S3 bucket before proceeding.
-
-==== Create and Run the CDE 
-=== 6. Create & Enrich Iceberg Tables via spark jobs in Cloudera Data Engineering
+=== 7. Create & Enrich Iceberg Tables via spark jobs in Cloudera Data Engineering
 
 In this section, you will create and run Spark jobs that create some iceberg tables and perform some enrichments/aggregations on the raw data ingested into the `cdr_raw` table by the NiFi flow.
 

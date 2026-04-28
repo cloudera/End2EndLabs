@@ -1,9 +1,13 @@
 import random
 import uuid
 from datetime import datetime
+import os
 import pandas as pd
 
-df = pd.read_csv("data/customer.csv")
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+csv_path = os.path.join(BASE_DIR, "data", "customer.csv")
+df = pd.read_csv(csv_path)
+
 df.rename(columns={"phone number": "customer_id"}, inplace=True)
 
 customer_ids = df["customer_id"].unique().tolist()
